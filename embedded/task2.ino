@@ -1,16 +1,3 @@
-/*
-Code Name: Arduino Wifi Control Car 
-Code URI: https://circuitbest.com/category/arduino-projects/
-Additional Board Manager URL: http://arduino.esp8266.com/stable/package_esp8266com_index.json 
-Install: ESP8266 by ESP8266 Community
-Author: Make DIY
-Author URI: https://circuitbest.com/author/admin/
-Description: This program is used to control a robot using a app
-that communicates with Arduino through a ESP8266 Module.
-App URI: https://drive.google.com/file/d/1pvtWsTeXhcJdpHMfGlFmbGDuH7eoLfoP/view?usp=sharing
-Version: 2.0
-License: Remixing or Changing this Thing is allowed. Commercial use is not allowed.
-*/
 
 
 #define ENA   14          // Enable/speed motors Right        GPIO14(D5)
