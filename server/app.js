@@ -1,3 +1,4 @@
+const fs = require('fs');
 const argv = require('minimist')(process.argv.slice(2));
 const { EventEmitter } = require('events');
 const { Server } = require('ws');
@@ -28,17 +29,26 @@ const feedURL = `http://${ip}:${port}/shot.jpg`;
 
 let mode = 'pilot';
 
+let options = {
+  responseType: 'arraybuffer',
+  headers: {
+    Accept: 'image/jpg',
+  },
+};
+
 function startAutoPilot() {
   let takeScreenshot = setInterval(() => {
     if (mode === 'auto-pilot') {
       axios
-        .get(feedURL)
+        .get(feedURL, options)
         .then((response) => {
-          const direction = getDirection(response.data);
+          const image = new Buffer.from(response.data);
+          fs.writeFileSync('image.jpg', image, 'binary');
+          const direction = getDirection(image);
           emitter.emit('sendDirections', direction);
         })
-        .catch(() => {
-          logger('ERROR', 'Server', 'Make Sure the IP Webcam is running');
+        .catch((err) => {
+          logger('ERROR', 'Server', err);
         });
     } else {
       clearInterval(takeScreenshot);
