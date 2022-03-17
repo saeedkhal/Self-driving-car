@@ -8,6 +8,7 @@ const emitter = new EventEmitter();
 let server = express();
 
 const { logger } = require('./logger');
+const { getDirection } = require('./lane-detection');
 
 server.use(cors());
 
@@ -27,16 +28,23 @@ const feedURL = `http://${ip}:${port}/shot.jpg`;
 
 let mode = 'pilot';
 
-let takeScreenshot = setInterval(() => {
-  if (mode === 'auto-pilot') {
-    axios.get(feedURL).then((response) => {
-      const direction = getDirection(response.data);
-      emitter.emit('sendDirections', direction);
-    });
-  } else {
-    clearInterval(takeScreenshot);
-  }
-}, 1000);
+function startAutoPilot() {
+  let takeScreenshot = setInterval(() => {
+    if (mode === 'auto-pilot') {
+      axios
+        .get(feedURL)
+        .then((response) => {
+          const direction = getDirection(response.data);
+          emitter.emit('sendDirections', direction);
+        })
+        .catch(() => {
+          logger('ERROR', 'Server', 'Make Sure the IP Webcam is running');
+        });
+    } else {
+      clearInterval(takeScreenshot);
+    }
+  }, 1000);
+}
 
 const wss = new Server({ server });
 
@@ -73,14 +81,6 @@ wss.on('connection', function connection(ws, req) {
         } catch (error) {
           logger('ERROR', 'Master Data', 'Parsing JSON Data');
         }
-        axios
-          .get(feedURL)
-          .then(function (response) {
-            emitter.emit('chipCall', response.data);
-          })
-          .catch(function (error) {
-            logger('ERROR', 'Master Data', 'Getting Image');
-          });
       });
       break;
     case '/slave':
@@ -91,7 +91,7 @@ wss.on('connection', function connection(ws, req) {
         if (message === 'auto-pilot') {
           mode = 'auto-pilot';
           logger('INFO', 'Slave', 'Auto Pilot Mode');
-          takeScreenshot();
+          startAutoPilot();
         } else if (message === 'pilot') {
           mode = 'pilot';
           logger('INFO', 'Slave', 'Pilot Mode');
