@@ -7,9 +7,9 @@ const cors = require('cors');
 const axios = require('axios');
 const emitter = new EventEmitter();
 let server = express();
-
+const { spawn } = require('child_process');
+const python = spawn('python', ['app.py']);
 const { logger } = require('./logger');
-const { getDirection } = require('./lane-detection');
 
 server.use(cors());
 
@@ -19,6 +19,7 @@ server = server.listen(process.env.PORT || 80, () =>
 
 const ip = argv.ip || '';
 const port = argv.port || '';
+let takeScreenshot;
 
 if (!ip || !port) {
   logger('ERROR', 'Server', 'Missing ip or port');
@@ -36,23 +37,26 @@ let options = {
   },
 };
 
-function startAutoPilot() {
-  let takeScreenshot = setInterval(() => {
-    if (mode === 'auto-pilot') {
-      axios
-        .get(feedURL, options)
-        .then((response) => {
-          const image = new Buffer.from(response.data);
-          fs.writeFileSync('image.jpg', image, 'binary');
-          const direction = getDirection(image);
-          emitter.emit('sendDirections', direction);
-        })
-        .catch((err) => {
-          logger('ERROR', 'Server', err);
-        });
-    } else {
-      clearInterval(takeScreenshot);
+const sendImage = (image) => {
+  python.stdin.write(image, (error) => {
+    if (error) {
+      logger('ERROR', 'Server', 'Error sending image to python');
     }
+  });
+};
+
+function startAutoPilot() {
+  takeScreenshot = setInterval(() => {
+    axios
+      .get(feedURL, options)
+      .then((response) => {
+        const image = new Buffer.from(response.data);
+        sendImage(image);
+        logger('INFO', 'Server', `Direction: ${direction}`);
+      })
+      .catch((err) => {
+        logger('ERROR', 'Server', err);
+      });
   }, 1000);
 }
 
@@ -105,7 +109,9 @@ wss.on('connection', function connection(ws, req) {
         } else if (message === 'pilot') {
           mode = 'pilot';
           logger('INFO', 'Slave', 'Pilot Mode');
-          clearInterval(takeScreenshot);
+          try {
+            clearInterval(takeScreenshot);
+          } catch {}
         } else {
           logger('INFO', 'Slave', 'Send Pilot Direction');
           emitter.emit('sendDirections', message);
@@ -117,4 +123,16 @@ wss.on('connection', function connection(ws, req) {
 
 wss.on('error', (error) => {
   logger('ERROR', 'Server', error);
+});
+
+python.stdout.on('data', (direction) => {
+  emitter.emit('sendDirections', direction);
+});
+
+python.stderr.on('data', (data) => {
+  logger('ERROR', 'Child Process', data.toString());
+});
+
+python.on('close', () => {
+  logger('WARNING', 'Child Process', 'Python Closed');
 });
