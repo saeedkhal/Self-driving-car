@@ -14,7 +14,7 @@ const { getDirection } = require('./lane-detection');
 server.use(cors());
 
 server = server.listen(process.env.PORT || 80, () =>
-  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`),
+  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`)
 );
 
 const ip = argv.ip || '';
@@ -105,7 +105,6 @@ wss.on('connection', function connection(ws, req) {
         } else if (message === 'pilot') {
           mode = 'pilot';
           logger('INFO', 'Slave', 'Pilot Mode');
-          clearInterval(takeScreenshot);
         } else {
           logger('INFO', 'Slave', 'Send Pilot Direction');
           emitter.emit('sendDirections', message);
