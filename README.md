@@ -32,7 +32,9 @@ Install dependencies
 ```bash
   npm install
 ```
-run the server run:
+Run IP webcam mobile app and replace xxxx:xxx:xxxx:xxx with your  ip 
+- [ip webcam](https://play.google.com/store/apps/details?id=com.pas.webcam&hl=ar&gl=US)
+Run the server run:
 ```sh
   node app.js --ip xxxx:xxxx:xxxx:xxxx --port 8080
 ```
@@ -46,7 +48,7 @@ Install dependencies
 ```bash
   npm install
 ```
-run the mobileApp run:
+Run the mobileApp run:
 ```sh
   expo start 
 ```
