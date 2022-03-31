@@ -11,8 +11,11 @@ WebSocketsClient webSocket;
 #define IN_2  13          // L298N in2 motors Right           GPIO13(D7)
 #define IN_3  2           // L298N in3 motors Left            GPIO2(D4)
 #define IN_4  0           // L298N in4 motors Left            GPIO0(D3)
+#define IR    16          // IR sensor pin                    GPIO16(D0)
+#define LED   5           
 
-int speedCar = 800;         // 400 - 1023.
+String carMode = "pilot" ;
+int speedCar = 100;         // 400 - 1023.
 int speed_Coeff = 3;
 
 String wifi_strengths ;
@@ -23,20 +26,26 @@ char *data[]={char_array_user,char_array_pass};
 unsigned long messageInterval = 100;
 bool connected = false;
 
-String path = "192.168.43.90";
+String path = "192.168.1.9";
 //String path = "indoor-localization-sbme.herokuapp.com" ;
 int port = 80;
 String url = "/master" ;
 #define DEBUG_SERIAL Serial
 
+void moving(unsigned int duration){
+      delay(duration);
+      stopRobot();
+  }
 void goAhead(){ 
-
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
       analogWrite(ENA, speedCar);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENB, speedCar);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
   }
 
 void goBack(){ 
@@ -47,66 +56,85 @@ void goBack(){
       digitalWrite(IN_3, HIGH);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
   }
 
 void goRight(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
+      digitalWrite(IN_1, LOW);
+      digitalWrite(IN_2, HIGH);
       analogWrite(ENA, speedCar);
       digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
+      digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
   }
 
 void goLeft(){
 
       digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
+      digitalWrite(IN_2, LOW);
       analogWrite(ENA, speedCar);
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
+      digitalWrite(IN_3, LOW);
+      digitalWrite(IN_4, HIGH);
       analogWrite(ENB, speedCar);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
   }
 
 void goAheadRight(){
       
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar/speed_Coeff);
+      analogWrite(ENB, speedCar);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar);
+      analogWrite(ENA, speedCar/speed_Coeff);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
    }
 
 void goAheadLeft(){
       
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENB, speedCar/speed_Coeff);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar/speed_Coeff);
+      analogWrite(ENA, speedCar);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
   }
 
 void goBackRight(){ 
 
       digitalWrite(IN_1, HIGH);
       digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar/speed_Coeff);
+      analogWrite(ENB, speedCar);
       digitalWrite(IN_3, HIGH);
       digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar);
+      analogWrite(ENA, speedCar/speed_Coeff);
+      if (carMode == "auto-pilot"){
+      moving(2000);
+        };
   }
 
 void goBackLeft(){ 
 
       digitalWrite(IN_1, HIGH);
       digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENB, speedCar/speed_Coeff);
       digitalWrite(IN_3, HIGH);
       digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar/speed_Coeff);
+      analogWrite(ENA, speedCar);
+      delay(2000);
+      stopRobot();
   }
 
 void stopRobot(){  
@@ -119,9 +147,53 @@ void stopRobot(){
       analogWrite(ENB, speedCar);
  }
 
-void handelCar(String direction){
-  Serial.println("this is the message from nodemcu" + direction);
+void handelCarDirection(String direction){
+      if (direction == "F") goAhead();
+      else if (direction == "B") goBack();
+      else if (direction == "L") goLeft();
+      else if (direction == "R") goRight();
+      else if (direction == "I") goAheadRight();
+      else if (direction == "G") goAheadLeft();
+      else if (direction == "J") goBackRight();
+      else if (direction == "H") goBackLeft();
+      else if (direction == "S") stopRobot();
   }
+void back(){
+      digitalWrite(IN_1, HIGH);
+      digitalWrite(IN_2, LOW);
+      analogWrite(ENA, speedCar);
+      digitalWrite(IN_3, HIGH);
+      digitalWrite(IN_4, LOW);
+      analogWrite(ENB, speedCar);
+      moving(1000);
+}
+void left(){
+      digitalWrite(IN_1, LOW);
+      digitalWrite(IN_2, LOW);
+      analogWrite(ENA, speedCar);
+      digitalWrite(IN_3, LOW);
+      digitalWrite(IN_4, HIGH);
+      analogWrite(ENB, speedCar);
+      moving(1000);
+
+}
+void ahead(){
+      digitalWrite(IN_1, LOW);
+      digitalWrite(IN_2, HIGH);
+      analogWrite(ENA, speedCar);
+      digitalWrite(IN_3, LOW);
+      digitalWrite(IN_4, HIGH);
+      analogWrite(ENB, speedCar);
+      moving(1000);
+
+}
+void handelObject (){
+  stopRobot();
+  back();
+  left();
+  ahead();
+  }
+  
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
         case WStype_DISCONNECTED:
@@ -133,8 +205,8 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
             connected = true;
             break;
         case WStype_TEXT:
-            DEBUG_SERIAL.printf("[WSc] RESPONSE: %s\n", payload);
-            handelCar((char *)payload);
+            DEBUG_SERIAL.printf("[WSc] CAR DIECTION : %s\n", payload);
+            handelCarDirection((char *)payload);
             break;
     }
  
@@ -192,6 +264,14 @@ void print_available_wifi () {
   }
 }
 void setup() {
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);  
+  pinMode(IN_1, OUTPUT);
+  pinMode(IN_2, OUTPUT);
+  pinMode(IN_3, OUTPUT);
+  pinMode(IN_4, OUTPUT); 
+  pinMode(IR,INPUT);
+  pinMode(LED,OUTPUT);
   Serial.begin(115200);
   print_available_wifi(); 
   connect_wifi();
@@ -216,10 +296,7 @@ unsigned long lastUpdate = millis();
 
 void loop() {
     webSocket.loop();
-//    if (connected && lastUpdate+messageInterval<millis()){
-//        get_wifi_strength();
-//        webSocket.sendTXT(wifi_strengths);
-//        DEBUG_SERIAL.println("[WSc] SENT:" + wifi_strengths);
-//       lastUpdate = millis();
-//    }
+    if (digitalRead(IR) == 0){
+      handelObject ();
+    }
 }
