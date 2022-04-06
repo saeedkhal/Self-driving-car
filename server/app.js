@@ -104,10 +104,12 @@ wss.on('connection', function connection(ws, req) {
         message = message.toString();
         if (message === 'auto-pilot') {
           mode = 'auto-pilot';
+          chip.send('auto-pilot');
           logger('INFO', 'Slave', 'Auto Pilot Mode');
           startAutoPilot();
         } else if (message === 'pilot') {
           mode = 'pilot';
+          chip.send('pilot');
           logger('INFO', 'Slave', 'Pilot Mode');
           try {
             clearInterval(takeScreenshot);
