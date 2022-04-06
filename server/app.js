@@ -1,10 +1,7 @@
-const fs = require('fs');
-const argv = require('minimist')(process.argv.slice(2));
 const { EventEmitter } = require('events');
 const { Server } = require('ws');
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
 const emitter = new EventEmitter();
 let server = express();
 const { spawn } = require('child_process');
@@ -17,40 +14,7 @@ server = server.listen(process.env.PORT || 80, () =>
   logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`),
 );
 
-const ip = argv.ip || '';
-const port = argv.port || '';
-let takeScreenshot;
-
-if (!ip || !port) {
-  logger('ERROR', 'Server', 'Missing ip or port');
-  process.exit(1);
-}
-
-const feedURL = `http://${ip}:${port}/shot.jpg`;
-
 let mode = 'pilot';
-
-let options = {
-  responseType: 'arraybuffer',
-  headers: {
-    Accept: 'image/jpg',
-  },
-};
-
-function startAutoPilot() {
-  takeScreenshot = setInterval(() => {
-    axios
-      .get(feedURL, options)
-      .then((response) => {
-        const image = new Buffer.from(response.data).toString('base64');
-        python.stdin.write(image, () => {});
-        fs.writeFileSync('temp.jpg', image);
-      })
-      .catch((err) => {
-        logger('ERROR', 'Server', `57 axios ${err}`);
-      });
-  }, 1000);
-}
 
 const wss = new Server({ server });
 
@@ -101,9 +65,6 @@ wss.on('connection', function connection(ws, req) {
         } else if (message === 'pilot') {
           mode = 'pilot';
           logger('INFO', 'Slave', 'Pilot Mode');
-          try {
-            clearInterval(takeScreenshot);
-          } catch {}
         } else {
           logger('INFO', 'Slave', 'Send Pilot Direction');
           emitter.emit('sendDirections', message);
@@ -114,12 +75,14 @@ wss.on('connection', function connection(ws, req) {
 });
 
 wss.on('error', (error) => {
-  logger('ERROR', 'Server', `124 ${error}`);
+  logger('ERROR', 'Server', `${error}`);
 });
 
 python.stdout.on('data', (data) => {
   logger('INFO', 'Server', data.toString());
-  emitter.emit('sendDirections', data.toString());
+  if (mode === 'auto-pilot') {
+    emitter.emit('sendDirections', data.toString());
+  }
 });
 
 python.stderr.on('data', (data) => {

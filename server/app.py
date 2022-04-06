@@ -7,6 +7,9 @@ import base64
 from imageio import imread
 import io
 import numpy as np
+from PIL import Image
+
+cp = cv2.VideoCapture('http://192.168.43.201:8080/video')
 
 logging.basicConfig(level=logging.DEBUG, filename='server.log', filemode='w',
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -220,10 +223,14 @@ def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_wid
     return heading_image
 
 while True:
+    # start_time = time.perf_counter()
+    _, frame = cp.read()
     try:
-        start_time = time.perf_counter()
-        frame = sys.stdin.buffer.read()
-        frame = imread(io.BytesIO(base64.b64decode(frame)))
+        # byteImgIO = io.BytesIO(base64.b64decode(str(frame)))
+        # byteImg = Image.open("temp.jpg")
+        # byteImg.save(byteImgIO, "JPG")
+        # byteImgIO.seek(0)
+        # frame = byteImgIO.read()
 # time the function
 # frame = cv2.imread('temp.jpg')
         logging.info('Read Image of size: %s' % str(frame.shape))
@@ -232,8 +239,11 @@ while True:
         # line_image = display_lines(frame, lane_lines)
         direction = steer(frame, lane_lines)
         logging.info('Steering: %s' % direction)
-        logging.info(f'Algo took {time.perf_counter() - start_time}')
-        sys.stdout.write(direction)
+        # logging.info(f'Algo took {time.perf_counter() - start_time}')
+        sys.stdout.write(str(direction))
         sys.stdout.flush()
+        time.sleep(1)
     except Exception as e:
+        sys.stdout.write(e)
+        sys.stdout.flush()
         logging.error(f'Encoutered error: {e}, continue running..')
