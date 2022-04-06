@@ -1,7 +1,11 @@
+import time
 import sys
 import cv2
 import logging
 import math
+import base64
+from imageio import imread
+import io
 import numpy as np
 
 logging.basicConfig(level=logging.DEBUG, filename='server.log', filemode='w',
@@ -173,20 +177,18 @@ def steer(frame, lane_lines):
     direction = ''
     if len(lane_lines) == 0:
         logging.error('Steering with no lines')
-        return frame
+        return 'S'
 
     new_steering_angle = compute_steering_angle(frame, lane_lines)
 
-    # curr_lane_image = display_lines(frame, lane_lines)
-    # curr_heading_image = display_heading_line(curr_lane_image, new_steering_angle)
     if new_steering_angle>=96 and new_steering_angle<=180:
-        direction='RIGHT'
+        direction='R'
     else:
         if new_steering_angle>=0 and new_steering_angle<=84:
-            direction='LEFT'
+            direction='L'
         else:
             if new_steering_angle <= 95 and new_steering_angle >= 85:
-                direction='FORWARD'
+                direction='F'
 
     print("new angle=", new_steering_angle)
     return direction
@@ -219,12 +221,18 @@ def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_wid
 
 while True:
     try:
+        start_time = time.perf_counter()
         frame = sys.stdin.buffer.read()
+        frame = imread(io.BytesIO(base64.b64decode(frame)))
+# time the function
+# frame = cv2.imread('temp.jpg')
         logging.info('Read Image of size: %s' % str(frame.shape))
         lane_lines = detect_lane(frame)
         logging.info('Detected lane lines: %s' % lane_lines)
         # line_image = display_lines(frame, lane_lines)
         direction = steer(frame, lane_lines)
+        logging.info('Steering: %s' % direction)
+        logging.info(f'Algo took {time.perf_counter() - start_time}')
         sys.stdout.write(direction)
         sys.stdout.flush()
     except Exception as e:

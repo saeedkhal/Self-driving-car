@@ -37,25 +37,17 @@ let options = {
   },
 };
 
-const sendImage = (image) => {
-  python.stdin.write(image, (error) => {
-    if (error) {
-      logger('ERROR', 'Server', 'Error sending image to python');
-    }
-  });
-};
-
 function startAutoPilot() {
   takeScreenshot = setInterval(() => {
     axios
       .get(feedURL, options)
       .then((response) => {
-        const image = new Buffer.from(response.data);
-        sendImage(image);
-        logger('INFO', 'Server', `Direction: ${direction}`);
+        const image = new Buffer.from(response.data).toString('base64');
+        python.stdin.write(image, () => {});
+        fs.writeFileSync('temp.jpg', image);
       })
       .catch((err) => {
-        logger('ERROR', 'Server', err);
+        logger('ERROR', 'Server', `57 axios ${err}`);
       });
   }, 1000);
 }
@@ -122,11 +114,12 @@ wss.on('connection', function connection(ws, req) {
 });
 
 wss.on('error', (error) => {
-  logger('ERROR', 'Server', error);
+  logger('ERROR', 'Server', `124 ${error}`);
 });
 
-python.stdout.on('data', (direction) => {
-  emitter.emit('sendDirections', direction);
+python.stdout.on('data', (data) => {
+  logger('INFO', 'Server', data.toString());
+  emitter.emit('sendDirections', data.toString());
 });
 
 python.stderr.on('data', (data) => {
