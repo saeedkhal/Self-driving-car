@@ -5,7 +5,7 @@ const AppProvider = ({ children }) => {
   const [mode, setMode] = useState('Pilot');
   const [rfid, setRFID] = useState(1);
   const [wsConnected, setWSConnected] = useState(false);
-  var ws = new WebSocket('ws://192.168.1.9:80/slave');
+  var ws = new WebSocket('ws://192.168.1.11:80/slave');
   useEffect(() => {
     ws.onopen = () => {
       // connection opened

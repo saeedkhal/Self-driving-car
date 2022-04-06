@@ -26,7 +26,7 @@ char *data[]={char_array_user,char_array_pass};
 unsigned long messageInterval = 100;
 bool connected = false;
 
-String path = "192.168.1.9";
+String path = "192.168.1.11";
 //String path = "indoor-localization-sbme.herokuapp.com" ;
 int port = 80;
 String url = "/master" ;
@@ -206,7 +206,13 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
             break;
         case WStype_TEXT:
             DEBUG_SERIAL.printf("[WSc] CAR DIECTION : %s\n", payload);
-            handelCarDirection((char *)payload);
+            if ((char *)payload == "pilot" || "auto-pilot"){
+               carMode =  (char *)payload ;
+               Serial.print((char *)payload);
+              }
+            else {
+              handelCarDirection((char *)payload);
+            }
             break;
     }
  
