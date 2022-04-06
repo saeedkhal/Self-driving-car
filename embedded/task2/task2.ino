@@ -86,56 +86,6 @@ void goLeft(){
         };
   }
 
-void goAheadRight(){
-      
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENB, speedCar);
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENA, speedCar/speed_Coeff);
-      if (carMode == "a"){
-      moving(2000);
-        };
-   }
-
-void goAheadLeft(){
-      
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENB, speedCar/speed_Coeff);
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENA, speedCar);
-      if (carMode == "a"){
-      moving(2000);
-        };
-  }
-
-void goBackRight(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENB, speedCar);
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENA, speedCar/speed_Coeff);
-      if (carMode == "a"){
-      moving(2000);
-        };
-  }
-
-void goBackLeft(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENB, speedCar/speed_Coeff);
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENA, speedCar);
-      delay(2000);
-      stopRobot();
-  }
 
 void stopRobot(){  
 
@@ -152,10 +102,6 @@ void handelCarDirection(String direction){
       else if (direction == "B") goBack();
       else if (direction == "L") goLeft();
       else if (direction == "R") goRight();
-      else if (direction == "I") goAheadRight();
-      else if (direction == "G") goAheadLeft();
-      else if (direction == "J") goBackRight();
-      else if (direction == "H") goBackLeft();
       else if (direction == "S") stopRobot();
   }
 void back(){
@@ -207,11 +153,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
         case WStype_TEXT:
             DEBUG_SERIAL.printf("[WSc] CAR DIECTION : %s\n", payload);
             if (!String((char *)payload).compareTo("pilot") ){
-              Serial.println("in pilot mode ");
+              Serial.println("car in pilot mode now");
               carMode = "pilot" ;
             }
             if (!String((char *)payload).compareTo("auto-pilot") ){
-              Serial.println("in auto pilot mode ");
+              Serial.println("car in auto pilot mode now");
               carMode = "auto-pilot" ;
             }
             else{
