@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WebSocketsClient.h>
@@ -15,9 +14,8 @@ WebSocketsClient webSocket;
 #define LED   5           
 
 String carMode = "pilot" ;
-int speedCar = 80;         // 400 - 1023.
+int speedCar = 100;         // 400 - 1023.
 int speed_Coeff = 3;
-
 String wifi_strengths ;
 char char_array_user[255];
 char char_array_pass[255];
@@ -26,7 +24,7 @@ char *data[]={char_array_user,char_array_pass};
 unsigned long messageInterval = 100;
 bool connected = false;
 
-String path = "172.28.129.221";
+String path = "192.168.1.9";
 //String path = "indoor-localization-sbme.herokuapp.com" ;
 int port = 80;
 String url = "/master" ;
@@ -43,8 +41,9 @@ void goAhead(){
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+     Serial.println("got forward in auto mode ");
+      moving(500);
         };
   }
 
@@ -56,20 +55,21 @@ void goBack(){
       digitalWrite(IN_3, HIGH);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+      moving(500);
         };
   }
 
 void goRight(){ 
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar*3);
+      analogWrite(ENA, speedCar);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+        Serial.print("iam in auto pilot right");
+      moving(500);
         };
   }
 
@@ -80,9 +80,9 @@ void goLeft(){
       analogWrite(ENA, speedCar);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar*3);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      analogWrite(ENB, speedCar);
+      if (!carMode.compareTo("auto-pilot")){
+      moving(500);
         };
   }
 
@@ -94,7 +94,7 @@ void goAheadRight(){
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENA, speedCar/speed_Coeff);
-      if (carMode == "auto-pilot"){
+      if (carMode == "a"){
       moving(2000);
         };
    }
@@ -107,7 +107,7 @@ void goAheadLeft(){
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENA, speedCar);
-      if (carMode == "auto-pilot"){
+      if (carMode == "a"){
       moving(2000);
         };
   }
@@ -120,7 +120,7 @@ void goBackRight(){
       digitalWrite(IN_3, HIGH);
       digitalWrite(IN_4, LOW);
       analogWrite(ENA, speedCar/speed_Coeff);
-      if (carMode == "auto-pilot"){
+      if (carMode == "a"){
       moving(2000);
         };
   }
@@ -206,13 +206,18 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
             break;
         case WStype_TEXT:
             DEBUG_SERIAL.printf("[WSc] CAR DIECTION : %s\n", payload);
-            if ((char *)payload == "pilot" || (char *)payload == "auto-pilot"){
-               carMode =  (char *)payload ;
-               Serial.print((char *)payload);
-              }
-            else {
-              handelCarDirection((char *)payload);
+            if (!String((char *)payload).compareTo("pilot") ){
+              Serial.println("in pilot mode ");
+              carMode = "pilot" ;
             }
+            if (!String((char *)payload).compareTo("auto-pilot") ){
+              Serial.println("in auto pilot mode ");
+              carMode = "auto-pilot" ;
+            }
+            else{
+            Serial.println("handel care direction");
+            handelCarDirection((char *)payload);
+              }
             break;
     }
  
@@ -248,8 +253,8 @@ void connect_wifi() {
 //    char * password;
 //    Serial.println("Please enter the password: ");
 //    password = strtok(serial_tochar(1), " ");
-    String username = "STUDBME2";
-    String password ="BME2Stud";
+    String username = "we";
+    String password = "88888888" ;
     WiFi.begin(username, password);
 
     uint8_t i = 0;
