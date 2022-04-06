@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context';
 
 const CarMode = () => {
-  const { setMode, ws, rfid } = useContext(AppContext);
+  const { setMode, ws, rfid, wsConnected, mode } = useContext(AppContext);
   const handelPress = (mode) => {
     setMode(mode);
     ws.send(mode);
@@ -12,8 +12,9 @@ const CarMode = () => {
   return (
     <>
       <VStack width="60%">
-        <Center>
-          <HStack marginY={5}>
+        <Center mt={20}>
+          {!wsConnected ? 'connection failed' : `${mode} Mode Running now`}{' '}
+          <HStack>
             <Button
               colorScheme="darkBlue"
               mx={4}
@@ -32,7 +33,7 @@ const CarMode = () => {
               Auto-Pilot
             </Button>
           </HStack>
-          <Button
+          {/* <Button
             marginY={5}
             colorScheme="yellow"
             rightIcon={<Ionicons color="black" size={20} name="bluetooth" />}
@@ -44,7 +45,7 @@ const CarMode = () => {
               fontWeight="bold"
               textAlign="center"
             >{`RFID ID is: ${rfid}`}</Text>
-          </Card>
+          </Card> */}
         </Center>
       </VStack>
     </>

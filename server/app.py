@@ -173,20 +173,20 @@ def steer(frame, lane_lines):
     direction = ''
     if len(lane_lines) == 0:
         logging.error('Steering with no lines')
-        return frame
+        return "0"
 
     new_steering_angle = compute_steering_angle(frame, lane_lines)
 
     # curr_lane_image = display_lines(frame, lane_lines)
     # curr_heading_image = display_heading_line(curr_lane_image, new_steering_angle)
     if new_steering_angle>=96 and new_steering_angle<=180:
-        direction='RIGHT'
+        direction='R'
     else:
         if new_steering_angle>=0 and new_steering_angle<=84:
-            direction='LEFT'
+            direction='L'
         else:
             if new_steering_angle <= 95 and new_steering_angle >= 85:
-                direction='FORWARD'
+                direction='F'
 
     print("new angle=", new_steering_angle)
     return direction
@@ -225,6 +225,7 @@ while True:
         logging.info('Detected lane lines: %s' % lane_lines)
         # line_image = display_lines(frame, lane_lines)
         direction = steer(frame, lane_lines)
+
         sys.stdout.write(direction)
         sys.stdout.flush()
     except Exception as e:

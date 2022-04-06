@@ -15,7 +15,7 @@ WebSocketsClient webSocket;
 #define LED   5           
 
 String carMode = "pilot" ;
-int speedCar = 100;         // 400 - 1023.
+int speedCar = 80;         // 400 - 1023.
 int speed_Coeff = 3;
 
 String wifi_strengths ;
@@ -26,7 +26,7 @@ char *data[]={char_array_user,char_array_pass};
 unsigned long messageInterval = 100;
 bool connected = false;
 
-String path = "192.168.1.11";
+String path = "172.28.129.221";
 //String path = "indoor-localization-sbme.herokuapp.com" ;
 int port = 80;
 String url = "/master" ;
@@ -64,7 +64,7 @@ void goBack(){
 void goRight(){ 
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENA, speedCar*3);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
@@ -80,7 +80,7 @@ void goLeft(){
       analogWrite(ENA, speedCar);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar);
+      analogWrite(ENB, speedCar*3);
       if (carMode == "auto-pilot"){
       moving(2000);
         };
@@ -206,7 +206,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
             break;
         case WStype_TEXT:
             DEBUG_SERIAL.printf("[WSc] CAR DIECTION : %s\n", payload);
-            if ((char *)payload == "pilot" || "auto-pilot"){
+            if ((char *)payload == "pilot" || (char *)payload == "auto-pilot"){
                carMode =  (char *)payload ;
                Serial.print((char *)payload);
               }
@@ -242,12 +242,14 @@ void get_wifi_strength() {
   serializeJson(doc, wifi_strengths);
 } 
 void connect_wifi() {
-    char * username;
-    Serial.println("Please enter the username: ");
-    username = strtok(serial_tochar(0), " ");
-    char * password;
-    Serial.println("Please enter the password: ");
-    password = strtok(serial_tochar(1), " ");
+//    char * username;
+//    Serial.println("Please enter the username: ");
+//    username = strtok(serial_tochar(0), " ");
+//    char * password;
+//    Serial.println("Please enter the password: ");
+//    password = strtok(serial_tochar(1), " ");
+    String username = "STUDBME2";
+    String password ="BME2Stud";
     WiFi.begin(username, password);
 
     uint8_t i = 0;

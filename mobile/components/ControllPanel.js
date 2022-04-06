@@ -8,14 +8,17 @@ const ControllPanel = () => {
   return (
     <>
       <Center width="40%" borderLeftWidth={2} borderColor="muted.300">
-        <Text>
-          {' '}
-          {!wsConnected ? 'connection failed' : `${mode} Mode Running now`}{' '}
-        </Text>
+        <Text> </Text>
         <IconButton
           isDisabled={mode === 'auto-pilot' || !wsConnected}
-          onPressIn={() => ws.send('F')}
-          onPressOut={() => ws.send('S')}
+          onPressIn={() => {
+            ws.send('F');
+            console.log('forwared order sent');
+          }}
+          onPressOut={() => {
+            ws.send('S');
+            console.log('stop oredr sent');
+          }}
           icon={<Ionicons color="green" size={60} name="chevron-up-circle" />}
         />
         <HStack>
@@ -40,7 +43,10 @@ const ControllPanel = () => {
         </HStack>
         <IconButton
           isDisabled={mode === 'auto-pilot' || !wsConnected}
-          onPressIn={() => ws.send('B')}
+          onPressIn={() => {
+            ws.send('B');
+            console.log('back order sent');
+          }}
           onPressOut={() => ws.send('S')}
           icon={<Ionicons color="green" size={60} name="chevron-down-circle" />}
         />

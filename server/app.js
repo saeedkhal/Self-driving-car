@@ -14,7 +14,7 @@ const { logger } = require('./logger');
 server.use(cors());
 
 server = server.listen(process.env.PORT || 80, () =>
-  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`),
+  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`)
 );
 
 const ip = argv.ip || '';
