@@ -1,5 +1,5 @@
 # Self-driving-car
-car with two modes first pilot mode and second autopilotmode.
+car with two modes first pilot mode and second auto pilotmode.
 1. pilot mode control the car from mobile app control panel.
 2. auto pilot mode for self driving car based on line detection.
 ## requirement
