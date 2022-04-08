@@ -14,17 +14,19 @@ WebSocketsClient webSocket;
 #define LED   5           
 
 String carMode = "pilot" ;
-int speedCar = 100;         // 400 - 1023.
+int speedCar = 110;         // 400 - 1023.
 int speed_Coeff = 3;
 String wifi_strengths ;
 char char_array_user[255];
 char char_array_pass[255];
 int network_number = 0 ;
 char *data[]={char_array_user,char_array_pass};
-unsigned long messageInterval = 100;
+unsigned long messageInterval = 500;
 bool connected = false;
+int moving_duration = 250;
 
-String path = "192.168.1.9";
+
+String path = "192.168.43.226";
 //String path = "indoor-localization-sbme.herokuapp.com" ;
 int port = 80;
 String url = "/master" ;
@@ -43,7 +45,7 @@ void goAhead(){
       analogWrite(ENB, speedCar);
       if (!carMode.compareTo("auto-pilot")){
      Serial.println("got forward in auto mode ");
-      moving(500);
+      moving(moving_duration);
         };
   }
 
@@ -56,20 +58,20 @@ void goBack(){
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
       if (!carMode.compareTo("auto-pilot")){
-      moving(500);
+      moving(moving_duration);
         };
   }
 
 void goRight(){ 
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENA, speedCar+10);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
       if (!carMode.compareTo("auto-pilot")){
         Serial.print("iam in auto pilot right");
-      moving(500);
+      moving(moving_duration);
         };
   }
 
@@ -77,12 +79,12 @@ void goLeft(){
 
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENA, speedCar+10);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENB, speedCar);
       if (!carMode.compareTo("auto-pilot")){
-      moving(500);
+      moving(moving_duration);
         };
   }
 
@@ -135,9 +137,6 @@ void ahead(){
 }
 void handelObject (){
   stopRobot();
-  back();
-  left();
-  ahead();
   }
   
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
@@ -156,7 +155,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
               Serial.println("car in pilot mode now");
               carMode = "pilot" ;
             }
-            if (!String((char *)payload).compareTo("auto-pilot") ){
+            else if (!String((char *)payload).compareTo("auto-pilot") ){
               Serial.println("car in auto pilot mode now");
               carMode = "auto-pilot" ;
             }
@@ -199,7 +198,7 @@ void connect_wifi() {
 //    char * password;
 //    Serial.println("Please enter the password: ");
 //    password = strtok(serial_tochar(1), " ");
-    String username = "we";
+    String username = "Ahmed Galal ";
     String password = "88888888" ;
     WiFi.begin(username, password);
 
@@ -253,9 +252,11 @@ void setup() {
  
 unsigned long lastUpdate = millis();
 
+
 void loop() {
-    webSocket.loop();
-    if (digitalRead(IR) == 0){
-      handelObject ();
-    }
+        webSocket.loop();
+        while (digitalRead(IR) == 0){
+          handelObject ();
+        }
+
 }
