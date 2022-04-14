@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WebSocketsClient.h>
@@ -15,18 +14,19 @@ WebSocketsClient webSocket;
 #define LED   5           
 
 String carMode = "pilot" ;
-int speedCar = 100;         // 400 - 1023.
+int speedCar = 110;         // 400 - 1023.
 int speed_Coeff = 3;
-
 String wifi_strengths ;
 char char_array_user[255];
 char char_array_pass[255];
 int network_number = 0 ;
 char *data[]={char_array_user,char_array_pass};
-unsigned long messageInterval = 100;
+unsigned long messageInterval = 500;
 bool connected = false;
+int moving_duration = 250;
 
-String path = "192.168.1.9";
+
+String path = "192.168.43.226";
 //String path = "indoor-localization-sbme.herokuapp.com" ;
 int port = 80;
 String url = "/master" ;
@@ -43,8 +43,9 @@ void goAhead(){
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+     Serial.println("got forward in auto mode ");
+      moving(moving_duration);
         };
   }
 
@@ -56,20 +57,21 @@ void goBack(){
       digitalWrite(IN_3, HIGH);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+      moving(moving_duration);
         };
   }
 
 void goRight(){ 
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENA, speedCar+10);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, LOW);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+        Serial.print("iam in auto pilot right");
+      moving(moving_duration);
         };
   }
 
@@ -77,65 +79,15 @@ void goLeft(){
 
       digitalWrite(IN_1, LOW);
       digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
+      analogWrite(ENA, speedCar+10);
       digitalWrite(IN_3, LOW);
       digitalWrite(IN_4, HIGH);
       analogWrite(ENB, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
+      if (!carMode.compareTo("auto-pilot")){
+      moving(moving_duration);
         };
   }
 
-void goAheadRight(){
-      
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENB, speedCar);
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENA, speedCar/speed_Coeff);
-      if (carMode == "auto-pilot"){
-      moving(2000);
-        };
-   }
-
-void goAheadLeft(){
-      
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENB, speedCar/speed_Coeff);
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENA, speedCar);
-      if (carMode == "auto-pilot"){
-      moving(2000);
-        };
-  }
-
-void goBackRight(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENB, speedCar);
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENA, speedCar/speed_Coeff);
-      if (carMode == "auto-pilot"){
-      moving(2000);
-        };
-  }
-
-void goBackLeft(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENB, speedCar/speed_Coeff);
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENA, speedCar);
-      delay(2000);
-      stopRobot();
-  }
 
 void stopRobot(){  
 
@@ -152,10 +104,6 @@ void handelCarDirection(String direction){
       else if (direction == "B") goBack();
       else if (direction == "L") goLeft();
       else if (direction == "R") goRight();
-      else if (direction == "I") goAheadRight();
-      else if (direction == "G") goAheadLeft();
-      else if (direction == "J") goBackRight();
-      else if (direction == "H") goBackLeft();
       else if (direction == "S") stopRobot();
   }
 void back(){
@@ -189,9 +137,6 @@ void ahead(){
 }
 void handelObject (){
   stopRobot();
-  back();
-  left();
-  ahead();
   }
   
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
@@ -206,7 +151,18 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
             break;
         case WStype_TEXT:
             DEBUG_SERIAL.printf("[WSc] CAR DIECTION : %s\n", payload);
+            if (!String((char *)payload).compareTo("pilot") ){
+              Serial.println("car in pilot mode now");
+              carMode = "pilot" ;
+            }
+            else if (!String((char *)payload).compareTo("auto-pilot") ){
+              Serial.println("car in auto pilot mode now");
+              carMode = "auto-pilot" ;
+            }
+            else{
+            Serial.println("handel care direction");
             handelCarDirection((char *)payload);
+              }
             break;
     }
  
@@ -242,6 +198,8 @@ void connect_wifi() {
     char * password;
     Serial.println("Please enter the password: ");
     password = strtok(serial_tochar(1), " ");
+    String username = username;
+    String password = password ;
     WiFi.begin(username, password);
 
     uint8_t i = 0;
@@ -292,11 +250,12 @@ void setup() {
   webSocket.onEvent(webSocketEvent);
 }
  
-unsigned long lastUpdate = millis();
+
 
 void loop() {
-    webSocket.loop();
-    if (digitalRead(IR) == 0){
-      handelObject ();
-    }
+        webSocket.loop();
+        while (digitalRead(IR) == 0){
+          handelObject ();
+        }
+
 }

@@ -1,4 +1,3 @@
-import time
 import sys
 import cv2
 import urllib.request
@@ -140,9 +139,9 @@ def compute_steering_angle(frame, lane_lines):
 
 def steer(frame, lane_lines):
     direction = ''
-    if len(lane_lines) == 0:
+    if not lane_lines:
         logging.error('Steering with no lines')
-        return 'S'
+        return "0"
 
     new_steering_angle = compute_steering_angle(frame, lane_lines)
 
