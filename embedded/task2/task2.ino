@@ -192,14 +192,14 @@ void get_wifi_strength() {
   serializeJson(doc, wifi_strengths);
 } 
 void connect_wifi() {
-//    char * username;
-//    Serial.println("Please enter the username: ");
-//    username = strtok(serial_tochar(0), " ");
-//    char * password;
-//    Serial.println("Please enter the password: ");
-//    password = strtok(serial_tochar(1), " ");
-    String username = "Ahmed Galal ";
-    String password = "88888888" ;
+    char * username;
+    Serial.println("Please enter the username: ");
+    username = strtok(serial_tochar(0), " ");
+    char * password;
+    Serial.println("Please enter the password: ");
+    password = strtok(serial_tochar(1), " ");
+    String username = username;
+    String password = password ;
     WiFi.begin(username, password);
 
     uint8_t i = 0;
@@ -250,7 +250,6 @@ void setup() {
   webSocket.onEvent(webSocketEvent);
 }
  
-unsigned long lastUpdate = millis();
 
 
 void loop() {
