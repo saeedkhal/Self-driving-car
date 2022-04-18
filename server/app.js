@@ -83,10 +83,21 @@ emitter.on('sendDirections', (direction) => {
   }
 });
 
+emitter.on('sendMode', (mode) => {
+  if (chip) {
+    chip.send(mode);
+    logger('INFO', 'Master Recieved', mode);
+  }
+});
+
 wss.on('connection', function connection(ws, req) {
   switch (req.url) {
     case '/master':
       chip = ws;
+      chip.on('close', () => {
+        logger('WARNING', 'Master', 'Master Closed');
+        mode = 'pilot';
+      });
       logger('INFO', 'Master', 'Master Connected');
       ws.on('message', function incoming(message) {
         logger('DATA', 'Master', message);
@@ -104,12 +115,11 @@ wss.on('connection', function connection(ws, req) {
         message = message.toString();
         if (message === 'auto-pilot') {
           mode = 'auto-pilot';
-          chip.send('auto-pilot');
+          emitter.emit('sendMode', 'auto-pilot');
           logger('INFO', 'Slave', 'Auto Pilot Mode');
-          startAutoPilot();
         } else if (message === 'pilot') {
           mode = 'pilot';
-          chip.send('pilot');
+          emitter.emit('sendMode', 'pilot');
           logger('INFO', 'Slave', 'Pilot Mode');
           try {
             clearInterval(takeScreenshot);

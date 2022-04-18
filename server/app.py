@@ -1,5 +1,6 @@
 import sys
 import cv2
+import urllib.request
 import logging
 import math
 import numpy as np
@@ -103,14 +104,6 @@ def detect_lane(frame):
     
     return lane_lines
 
-def display_lines(frame, lines, line_color=(0, 255, 0), line_width=2):
-    line_image = np.zeros_like(frame)
-    if lines is not None:
-        for line in lines:
-            for x1, y1, x2, y2 in line:
-                cv2.line(line_image, (x1, y1), (x2, y2), line_color, line_width)
-    line_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)
-    return line_image
 
 def compute_steering_angle(frame, lane_lines):
     """ Find the steering angle based on lane line coordinate
@@ -143,90 +136,38 @@ def compute_steering_angle(frame, lane_lines):
     return steering_angle
 
 
-def stabilize_steering_angle(curr_steering_angle, new_steering_angle,
-                                num_of_lane_lines,
-                                max_angle_deviation_two_lines=5,
-                                max_angle_deviation_one_lane=1):
-
-    """
-    Using last steering angle to stabilize the steering angle
-    if new angle is too different from current angle,
-    only turn by max_angle_deviation degrees
-    """
-    if num_of_lane_lines == 2:
-        # if both lane lines detected, then we can deviate more
-        max_angle_deviation = max_angle_deviation_two_lines
-    else:
-        # if only one lane detected, don't deviate too much
-        max_angle_deviation = max_angle_deviation_one_lane
-
-    angle_deviation = new_steering_angle - curr_steering_angle
-    if abs(angle_deviation) > max_angle_deviation:
-        stabilized_steering_angle = int(curr_steering_angle
-                                        + max_angle_deviation * angle_deviation / abs(angle_deviation))
-    else:
-        stabilized_steering_angle = new_steering_angle
-    return stabilized_steering_angle
-
 
 def steer(frame, lane_lines):
     direction = ''
-    if len(lane_lines) == 0:
+    if not lane_lines:
         logging.error('Steering with no lines')
         return "0"
 
     new_steering_angle = compute_steering_angle(frame, lane_lines)
 
-    # curr_lane_image = display_lines(frame, lane_lines)
-    # curr_heading_image = display_heading_line(curr_lane_image, new_steering_angle)
-    if new_steering_angle>=96 and new_steering_angle<=180:
-        direction='R'
+    if new_steering_angle>=0 and new_steering_angle<=75:
+        direction='L'
+    elif new_steering_angle>=75 and new_steering_angle<=110:
+        direction='F'
     else:
-        if new_steering_angle>=0 and new_steering_angle<=84:
-            direction='L'
-        else:
-            if new_steering_angle <= 95 and new_steering_angle >= 85:
-                direction='F'
-
-    print("new angle=", new_steering_angle)
+        direction='R'
     return direction
-
-
-def display_lines(frame, lines):
-    line_image = np.zeros_like(frame)
-    if lines is not None:
-        for line in lines:
-            for x1, y1, x2, y2 in line:
-                cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), 10)
-    line_image = cv2.addWeighted(frame, 0.6, line_image, 1, 1)
-    return line_image
-
-
-def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_width=5):
-    heading_image = np.zeros_like(frame)
-    height, width, _ = frame.shape
-
-    steering_angle_radian = steering_angle / 180.0 * math.pi
-    x1 = int(width / 2)
-    y1 = height
-    x2 = int(x1 - height / 2 / math.tan(steering_angle_radian))
-    y2 = int(height / 2)
-
-    cv2.line(heading_image, (x1, y1), (x2, y2), line_color, line_width)
-    heading_image = cv2.addWeighted(frame, 0.8, heading_image, 1, 1)
-
-    return heading_image
 
 while True:
     try:
-        frame = sys.stdin.buffer.read()
+        req = urllib.request.urlopen('http://192.168.43.201:8080/shot.jpg')
+        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+        frame = cv2.imdecode(arr, -1)
         logging.info('Read Image of size: %s' % str(frame.shape))
         lane_lines = detect_lane(frame)
         logging.info('Detected lane lines: %s' % lane_lines)
-        # line_image = display_lines(frame, lane_lines)
         direction = steer(frame, lane_lines)
+        logging.info('Steering: %s' % direction)
 
-        sys.stdout.write(direction)
+        sys.stdout.write(str(direction))
         sys.stdout.flush()
+        time.sleep(0.2)
     except Exception as e:
+        sys.stdout.write(str(e))
+        sys.stdout.flush()
         logging.error(f'Encoutered error: {e}, continue running..')
