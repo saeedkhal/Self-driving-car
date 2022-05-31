@@ -3,6 +3,7 @@
 
 #define SS_PIN 10
 #define RST_PIN 9
+String tempUuid ;
 MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 void setup()
 {
@@ -16,8 +17,12 @@ void loop()
   // Look for new cards
   if ( ! mfrc522.PICC_IsNewCardPresent())
   {
-    Serial.println("No uuid");
-    delay(5000);
+    if (tempUuid.compareTo("No uuid")) {
+      tempUuid = "No uuid" ;
+      Serial.println("No uuid");
+      delay(5000);
+    }
+
     return;
   }
   // Select one of the cards
@@ -32,14 +37,17 @@ void loop()
       content.concat(String(mfrc522.uid.uidByte[i], HEX));
     }
     content.toUpperCase();
-    Serial.println(content.substring(1));
+    if (tempUuid.compareTo(content.substring(1))) {
+      tempUuid = content.substring(1) ;
+      Serial.println(content.substring(1));
+      delay(5000);
+    }
     // Look for new cards
     if ( ! mfrc522.PICC_IsNewCardPresent())
     {
-      delay(1000);
       return;
     }
-    delay (1000);
+    delay (200);
   }
 
 
