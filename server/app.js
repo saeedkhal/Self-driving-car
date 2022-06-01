@@ -7,14 +7,14 @@ const cors = require('cors');
 const axios = require('axios');
 const emitter = new EventEmitter();
 let server = express();
-// const { spawn } = require('child_process');
-// const python = spawn('python', ['app.py']);
+const { spawn } = require('child_process');
+const python = spawn('python3', [__dirname, 'app.py']);
 const { logger } = require('./logger');
 
 server.use(cors());
 
 server = server.listen(process.env.PORT || 80, () =>
-  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`)
+  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`),
 );
 
 const ip = argv.ip || '';
@@ -137,14 +137,14 @@ wss.on('error', (error) => {
   logger('ERROR', 'Server', error);
 });
 
-// python.stdout.on('data', (direction) => {
-//   emitter.emit('sendDirections', direction);
-// });
+python.stdout.on('data', (direction) => {
+  emitter.emit('sendDirections', direction);
+});
 
-// python.stderr.on('data', (data) => {
-//   logger('ERROR', 'Child Process', data.toString());
-// });
+python.stderr.on('data', (data) => {
+  logger('ERROR', 'Child Process', data.toString());
+});
 
-// python.on('close', () => {
-//   logger('WARNING', 'Child Process', 'Python Closed');
-// });
+python.on('close', () => {
+  logger('WARNING', 'Child Process', 'Python Closed');
+});
