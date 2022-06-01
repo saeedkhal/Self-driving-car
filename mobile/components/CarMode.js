@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
 import { HStack, Center, VStack, Button, Card, Text } from 'native-base';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppContext } from '../context';
-
 const CarMode = () => {
   const { setMode, ws, rfid, wsConnected, mode } = useContext(AppContext);
   const handelPress = (mode) => {
@@ -33,22 +32,25 @@ const CarMode = () => {
               Auto-Pilot
             </Button>
           </HStack>
-          {/* <Button
-            marginY={5}
-            colorScheme="yellow"
-            rightIcon={<Ionicons color="black" size={20} name="bluetooth" />}
-          >
-            <Text>Find RFID</Text>
-          </Button>
-          <Card mt={20} width={250}>
-            <Text
-              fontWeight="bold"
-              textAlign="center"
-            >{`RFID ID is: ${rfid}`}</Text>
-          </Card> */}
+          <Card mt={15} width={250}>
+            <HStack justifyContent="center" alignItems="center">
+              {rfid.startsWith('No') ? (
+                // change back ground color to red
+                <MaterialCommunityIcons name="circle" size={15} color="red" />
+              ) : (
+                <MaterialCommunityIcons name="circle" size={15} color="green" />
+              )}
+              <Text
+                fontWeight="bold"
+                textAlign="center"
+                ml={1}
+              >{`${rfid}`}</Text>
+            </HStack>
+          </Card>
         </Center>
       </VStack>
     </>
   );
 };
+
 export default CarMode;
