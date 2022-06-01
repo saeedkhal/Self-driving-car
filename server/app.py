@@ -4,6 +4,7 @@ import urllib.request
 import logging
 import math
 import numpy as np
+import time
 
 logging.basicConfig(level=logging.DEBUG, filename='server.log', filemode='w',
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -155,7 +156,7 @@ def steer(frame, lane_lines):
 
 while True:
     try:
-        req = urllib.request.urlopen('http://192.168.43.201:8080/shot.jpg')
+        req = urllib.request.urlopen('http://192.168.1.3:8080/shot.jpg')
         arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
         frame = cv2.imdecode(arr, -1)
         logging.info('Read Image of size: %s' % str(frame.shape))
