@@ -5,11 +5,12 @@ const cors = require('cors');
 const emitter = new EventEmitter();
 let server = express();
 const { spawn } = require('child_process');
-const python = spawn('python', ['app.py']);
+// const python = spawn('python', ['app.py']);
+const python = spawn('python3', [__dirname + '/app.py']);
 const { logger } = require('./logger');
 server.use(cors());
 server = server.listen(process.env.PORT || 80, () =>
-  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`),
+  logger('INFO', 'Server', `Server started on port ${process.env.PORT || 80}`)
 );
 let mode = 'pilot';
 const wss = new Server({ server });
@@ -51,7 +52,8 @@ wss.on('connection', function connection(ws, req) {
       ws.on('message', function incoming(message) {
         logger('DATA', 'Master', message);
         try {
-          readings = JSON.parse(message);
+          emitter.emit('chipCall', message);
+          console.log(message);
         } catch (error) {
           logger('ERROR', 'Master Data', 'Parsing JSON Data');
         }
@@ -66,7 +68,6 @@ wss.on('connection', function connection(ws, req) {
           mode = 'auto-pilot';
           emitter.emit('sendMode', 'auto-pilot');
           logger('INFO', 'Slave', 'Auto Pilot Mode');
-          startAutoPilot();
         } else if (message === 'pilot') {
           mode = 'pilot';
           emitter.emit('sendMode', 'pilot');

@@ -5,6 +5,7 @@ import { AppContext } from '../context';
 
 const ControllPanel = () => {
   const { mode, setMode, ws, wsConnected } = useContext(AppContext);
+  console.log('here is web socket');
   return (
     <>
       <Center width="40%" borderLeftWidth={2} borderColor="muted.300">

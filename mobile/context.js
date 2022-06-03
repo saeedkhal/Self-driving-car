@@ -5,25 +5,26 @@ const AppProvider = ({ children }) => {
   const [mode, setMode] = useState('pilot');
   const [rfid, setRFID] = useState('No uuid');
   const [wsConnected, setWSConnected] = useState(false);
-  let ws;
+  const [ws, setWs] = useState(null);
   useEffect(() => {
-    ws = new WebSocket('ws://192.168.1.9:80/slave');
-    ws.onopen = () => {
+    const webSocket = new WebSocket('ws://192.168.1.9:80/slave');
+    setWs(webSocket);
+    webSocket.onopen = () => {
       // connection opened
       console.log('Connected to server');
       setWSConnected(true);
     };
 
-    ws.onclose = (e) => {
+    webSocket.onclose = (e) => {
       console.log(e.code, e.reason);
       console.log('Disconnected from server');
       setWSConnected(false);
     };
-    ws.onerror = (e) => {
+    webSocket.onerror = (e) => {
       // an error occurred
       setWSConnected(false);
     };
-    ws.onmessage = (message) => {
+    webSocket.onmessage = (message) => {
       // a message was received
       setRFID(message.data);
     };
