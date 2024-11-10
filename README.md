@@ -1,7 +1,4 @@
 # Tesla IoT Project 🚗
-
-This project integrates IoT functionality into a Tesla car, offering **Pilot Mode** and **Autopilot Mode** for enhanced driving options. The project leverages a mobile app control panel for manual control and utilizes line detection for autonomous driving.
-
 <p align = "center">
     <img src="car.gif" />
 </p>
